@@ -37,9 +37,9 @@ async function verifyAndMint(req, res) {
 
     let valueEstimate = parseFloat(content?.trim());
     if (isNaN(valueEstimate)) valueEstimate = 0;
-
-    const tokensToMint = Math.min(valueEstimate / 1, 100); // Open valuation, max 100 cap
-    const mintAmount = ethers.parseUnits(tokensToMint.toString(), 18);
+    const parsedValue = parseFloat(valueEstimate.toString().replace(/[^\d.]/g, ''));
+    const tokensToMint = Math.min((parsedValue * 1000) / 100, 100); // Cap at 100
+    const mintAmount = ethers.parseUnits(tokensToMint.toFixed(6), 18);
 
     const tx = await contract.mint(walletAddress, mintAmount);
     await tx.wait();
