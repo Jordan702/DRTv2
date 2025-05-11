@@ -1,35 +1,64 @@
-// backend/index.js (DRTv2)
-
-// Load environment variables
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-require('dotenv').config();
+const fs = require('fs');
 
-// Initialize Express app
 const app = express();
 
-// Enable CORS for DRTv2 frontend (adjust if hosted elsewhere)
-app.use(cors({
-  origin: 'http://localhost:5173', // Update this to match your DRTv2 frontend port if different
-  methods: ['GET', 'POST'],
-  credentials: false
-}));
+// CORS setup for frontend domain
+const corsOptions = {
+  origin: 'https://jordan702.github.io',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: false,
+};
+app.use(cors(corsOptions));
 
-// Middleware to parse JSON
-app.use(express.json());
+// Body parsers
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// Setup multer for file uploads
-const upload = multer({ dest: 'uploads/' });
+// Serve static files from "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Import and use the /api/verify submission route
+// Multer setup for uploads (if used by /verify route)
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+const upload = multer({ dest: 'uploads/', limits: { fileSize: 20 * 1024 * 1024 } }); // 20MB
+
+// Routes
 const submitRoute = require('./routes/submit');
-app.use('/api/verify', submitRoute);
+const vaultRoutes = require('./routes/vaultRoutes');
 
-// Test route
+app.use('/api/verify', submitRoute);
+app.use('/api/vault', vaultRoutes);
+
+// Serve the DRT Redemption HTML directly
+app.get('/redeem', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/redeem.html'));
+});
+
+// Health check
 app.get('/', (req, res) => {
-  res.send('DRTv2 Backend API is live 🚀');
+  res.send('✅ DRTv2 Backend API is live 🚀');
+});
+
+// Dashboard route for submission logs
+app.get('/api/dashboard', (req, res) => {
+  try {
+    const logPath = path.resolve(__dirname, 'logs/submissions.json');
+    const logs = fs.existsSync(logPath) ? JSON.parse(fs.readFileSync(logPath)) : [];
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load dashboard data', details: err.message });
+  }
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('🌐 Global Error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 // Start the server
