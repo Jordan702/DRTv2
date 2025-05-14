@@ -8,7 +8,7 @@ const { evaluateResourcePrompt } = require('../services/openaiService');
 const DRTv2_ABI = require('../DRT_abi.json');
 const provider = new ethers.JsonRpcProvider(process.env.MAINNET_RPC_URL);
 const signer = new ethers.Wallet(process.env.MINTER_PRIVATE_KEY, provider);
-const contract = new ethers.Contract(process.env.DRTv2_CONTRACT_ADDRESS, DRTv2_ABI, signer);
+const contract = new ethers.Contract(process.env.DRT_CONTRACT_ADDRESS, DRTv2_ABI, signer);
 
 // Track last submission per wallet (in-memory)
 const lastSubmissionTime = {};
@@ -17,7 +17,7 @@ const SUBMISSION_COOLDOWN_MS = 2 * 60 * 1000; // 2 minutes
 // Startup Debug Info
 (async () => {
   try {
-    console.log("✅ Loaded contract from:", process.env.DRTv2_CONTRACT_ADDRESS);
+    console.log("✅ Loaded contract from:", process.env.DRT_CONTRACT_ADDRESS);
     console.log("✅ Contract target address:", contract.target);
     console.log("✅ Signer address:", await signer.getAddress());
   } catch (err) {
