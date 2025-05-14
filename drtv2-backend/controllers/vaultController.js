@@ -7,8 +7,8 @@ const path = require("path");
 const vaultAbi = require("../abi/Vault.json");
 
 // Setup provider and signer
-const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+const provider = new ethers.JsonRpcProvider(process.env.MAINNET_RPC_URL);
+const signer = new ethers.Wallet(process.env.MINTER_PRIVATE_KEY, provider);
 
 // Connect to Vault contract
 const vaultAddress = process.env.VAULT_CONTRACT_ADDRESS;
